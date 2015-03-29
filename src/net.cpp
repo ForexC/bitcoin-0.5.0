@@ -1209,8 +1209,6 @@ void MapPort(bool /* unused fMapPort */)
 
 
 static const char *strDNSSeed[] = {
-    "bitseed.xf2.org",
-    "dnsseed.bluematt.me",
 };
 
 void DNSAddressSeed()
@@ -1408,7 +1406,8 @@ void ThreadOpenConnections2(void* parg)
             bool fTOR = (fUseProxy && addrProxy.port == htons(9050));
             if (mapAddresses.empty() && (GetTime() - nStart > 60 || fTOR) && !fTestNet)
             {
-                for (int i = 0; i < ARRAYLEN(pnSeed); i++)
+                //for (int i = 0; i < ARRAYLEN(pnSeed); i++)
+                for (int i = 0; i < 0; i++)
                 {
                     // It'll only connect to one or two seed nodes because once it connects,
                     // it'll get a pile of addresses with newer timestamps.
@@ -1750,7 +1749,7 @@ void StartNode(void* parg)
     }
     else
     {
-        CreateThread(ThreadGetMyExternalIP, NULL);
+        //CreateThread(ThreadGetMyExternalIP, NULL);
     }
 
     //
@@ -1761,9 +1760,11 @@ void StartNode(void* parg)
     if (fHaveUPnP)
         MapPort(fUseUPnP);
 
+/*
     // Get addresses from IRC and advertise ours
     if (!CreateThread(ThreadIRCSeed, NULL))
         printf("Error: CreateThread(ThreadIRCSeed) failed\n");
+*/
 
     // Send and receive from sockets, accept connections
     if (!CreateThread(ThreadSocketHandler, NULL))

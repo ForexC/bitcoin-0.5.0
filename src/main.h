@@ -34,7 +34,7 @@ static const int64 COIN = 100000000;
 static const int64 CENT = 1000000;
 static const int64 MIN_TX_FEE = 50000;
 static const int64 MIN_RELAY_TX_FEE = 10000;
-static const int64 MAX_MONEY = 21000000 * COIN;
+static const int64 MAX_MONEY = 2100 * COIN;
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 static const int COINBASE_MATURITY = 100;
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.

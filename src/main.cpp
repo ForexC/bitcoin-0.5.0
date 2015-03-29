@@ -27,9 +27,9 @@ unsigned int nTransactionsUpdated = 0;
 map<COutPoint, CInPoint> mapNextTx;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
-static CBigNum bnProofOfWorkLimit(~uint256(0) >> 32);
-const int nTotalBlocksEstimate = 140700; // Conservative estimate of total nr of blocks on main chain
+uint256 hashGenesisBlock("0x0003d703c9eda50fc28452d9c4deb81d9d2bdda1aa0de7765258bbc7f831b208");
+static CBigNum bnProofOfWorkLimit(~uint256(0) >> 8);
+const int nTotalBlocksEstimate = 1; // Conservative estimate of total nr of blocks on main chain
 const int nInitialBlockThreshold = 120; // Regard blocks up until N-threshold as "initial download"
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -654,7 +654,7 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     int64 nSubsidy = 50 * COIN;
 
     // Subsidy is cut in half every 4 years
-    nSubsidy >>= (nHeight / 210000);
+    nSubsidy >>= (nHeight / 2100);
 
     return nSubsidy + nFees;
 }
@@ -742,6 +742,7 @@ int GetNumBlocksOfPeers()
 
 bool IsInitialBlockDownload()
 {
+  //  printf("xxxx %d %d %d\n", nBestHeight, GetTotalBlocksEstimate(), nInitialBlockThreshold);
     if (pindexBest == NULL || nBestHeight < (GetTotalBlocksEstimate()-nInitialBlockThreshold))
         return true;
     static int64 nLastUpdate;
@@ -751,6 +752,7 @@ bool IsInitialBlockDownload()
         pindexLastBest = pindexBest;
         nLastUpdate = GetTime();
     }
+   // printf("yyyy%d %d %d\n", GetTime(), nLastUpdate, pindexBest->GetBlockTime());
     return (GetTime() - nLastUpdate < 10 &&
             pindexBest->GetBlockTime() < GetTime() - 24 * 60 * 60);
 }
@@ -1317,17 +1319,6 @@ bool CBlock::AcceptBlock()
             return DoS(10, error("AcceptBlock() : contains a non-final transaction"));
 
     // Check that the block chain matches the known block chain up to a checkpoint
-    if (!fTestNet)
-        if ((nHeight ==  11111 && hash != uint256("0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d")) ||
-            (nHeight ==  33333 && hash != uint256("0x000000002dd5588a74784eaa7ab0507a18ad16a236e7b1ce69f00d7ddfb5d0a6")) ||
-            (nHeight ==  68555 && hash != uint256("0x00000000001e1b4903550a0b96e9a9405c8a95f387162e4944e8d9fbe501cd6a")) ||
-            (nHeight ==  70567 && hash != uint256("0x00000000006a49b14bcf27462068f1264c961f11fa2e0eddd2be0791e1d4124a")) ||
-            (nHeight ==  74000 && hash != uint256("0x0000000000573993a3c9e41ce34471c079dcf5f52a0e824a81e7f953b8661a20")) ||
-            (nHeight == 105000 && hash != uint256("0x00000000000291ce28027faea320c8d2b054b2e0fe44a773f3eefb151d6bdc97")) ||
-            (nHeight == 118000 && hash != uint256("0x000000000000774a7f8a7a12dc906ddb9e17e75d684f15e00f8767f9e8f36553")) ||
-            (nHeight == 134444 && hash != uint256("0x00000000000005b12ffd4cd315cd34ffd4a594f430ac814c91184a0d42d2b0fe")) ||
-            (nHeight == 140700 && hash != uint256("0x000000000000033b512028abb90e1626d8b346fd0ed598ac0a3c371138dce2bd")))
-            return DoS(100, error("AcceptBlock() : rejected by checkpoint lockin at %d", nHeight));
 
     // Write block to history file
     if (!CheckDiskSpace(::GetSerializeSize(*this, SER_DISK)))
@@ -1517,23 +1508,36 @@ bool LoadBlockIndex(bool fAllowNew)
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1231006505;
-        block.nBits    = 0x1d00ffff;
-        block.nNonce   = 2083236893;
+        block.nTime    = 1427512201;
+        block.nBits    = 0x2000ffff;
+        block.nNonce   = 384735270;
 
         if (fTestNet)
         {
             block.nTime    = 1296688602;
             block.nBits    = 0x1d07fff8;
-            block.nNonce   = 384568319;
+            block.nNonce   = 384735331;
         }
-
+/*
         //// debug print
+        hashGenesisBlock = block.GetHash();
+        CBigNum my_target;
+        my_target.SetCompact(block.nBits);
+        while (hashGenesisBlock > my_target.getuint256()){
+            if (++block.nNonce==0) break;
+	    printf("%x\n", block.nNonce);
+            hashGenesisBlock = block.GetHash();
+	    printf("%d\n", block.nNonce);
+	    printf("%s\n", hashGenesisBlock.ToString().c_str());
+	    printf("%s\n", bnProofOfWorkLimit.getuint256().ToString().c_str());//00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+	    printf("%s\n", my_target.getuint256().ToString().c_str());//00000000ffff00000000000000000000000000000000000000000000
+        }
+*/
         printf("%s\n", block.GetHash().ToString().c_str());
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
-        assert(block.hashMerkleRoot == uint256("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
         block.print();
+        assert(block.hashMerkleRoot == uint256("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
         assert(block.GetHash() == hashGenesisBlock);
 
         // Start new block file
@@ -2958,13 +2962,19 @@ void static BitcoinMiner(CWallet *pwallet)
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
 
+    //printf("1111111111\n");
     while (fGenerateBitcoins)
     {
+    //printf("2222\n");
         if (AffinityBugWorkaround(ThreadBitcoinMiner))
             return;
         if (fShutdown)
             return;
-        while (vNodes.empty() || IsInitialBlockDownload())
+    //printf("3333\n");
+    //if (vNodes.empty())
+    //printf("empty\n");
+        //while (vNodes.empty() || IsInitialBlockDownload())
+        while (IsInitialBlockDownload())
         {
             Sleep(1000);
             if (fShutdown)
@@ -2972,6 +2982,7 @@ void static BitcoinMiner(CWallet *pwallet)
             if (!fGenerateBitcoins)
                 return;
         }
+    //printf("4444\n");
 
 
         //
@@ -2983,6 +2994,7 @@ void static BitcoinMiner(CWallet *pwallet)
         auto_ptr<CBlock> pblock(CreateNewBlock(reservekey));
         if (!pblock.get())
             return;
+    //printf("5555\n");
         IncrementExtraNonce(pblock.get(), pindexPrev, nExtraNonce);
 
         printf("Running BitcoinMiner with %d transactions in block\n", pblock->vtx.size());
